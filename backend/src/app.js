@@ -3,8 +3,13 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
-// Carrega as variáveis de ambiente do arquivo .env.
+// Carrega as variáveis antes de importar módulos que abrem o banco.
 dotenv.config();
+
+const errorHandler = require("./middlewares/errorHandler");
+const authRoutes = require("./routes/auth.routes");
+const projetoRoutes = require("./routes/projetos.routes");
+const usuarioRoutes = require("./routes/usuarios.routes");
 
 // Cria a instância do Express para configurar a API.
 const app = express();
@@ -59,6 +64,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api/auth", authRoutes);
+app.use("/api/projetos", projetoRoutes);
+app.use("/api/usuarios", usuarioRoutes);
+
 // Middleware para respostas de rota não encontrada.
 app.use((req, res) => {
   res.status(404).json({
@@ -68,17 +77,7 @@ app.use((req, res) => {
 });
 
 // Middleware global de tratamento de erros do Express.
-app.use((err, req, res, next) => {
-  console.error(err);
-
-  const statusCode = err.statusCode || 500;
-
-  res.status(statusCode).json({
-    ok: false,
-    message: err.message || "Erro interno do servidor.",
-  });
-});
+app.use(errorHandler);
 
 // Exporta o app para ser usado pelo servidor principal.
 module.exports = app;
-
